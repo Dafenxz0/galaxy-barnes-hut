@@ -1,0 +1,73 @@
+name: CI & Deploy Pages
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  check-and-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+          targets: wasm32-unknown-unknown
+
+      - name: Check formatting
+        run: cargo fmt --all -- --check
+
+      - name: Clippy (host all targets)
+        run: cargo clippy --all-targets -- -D warnings
+
+      - name: Clippy (wasm32 lib)
+        run: cargo clippy --target wasm32-unknown-unknown --lib -- -D warnings
+
+      - name: Run unit tests
+        run: cargo test --verbose
+
+      - name: Build release WebAssembly module
+        run: cargo build --target wasm32-unknown-unknown --release
+
+      - name: Verify frontend JavaScript syntax
+        run: node --check web/app.js
+
+      - name: Prepare Pages bundle
+        run: |
+          mkdir -p dist
+          cp -r web/* dist/
+          cp target/wasm32-unknown-unknown/release/galaxy_barnes_hut.wasm dist/galaxy_barnes_hut.wasm
+          test -s dist/galaxy_barnes_hut.wasm
+
+      - name: Upload GitHub Pages artifact
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: check-and-build
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
