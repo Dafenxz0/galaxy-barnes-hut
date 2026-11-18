@@ -5,7 +5,7 @@ pub mod sim;
 use std::cell::RefCell;
 
 use quadtree::QUADTREE_BOX_STRIDE;
-use sim::{Simulation, PARTICLE_STRIDE};
+use sim::{ClusterSpawn, Simulation, PARTICLE_STRIDE};
 
 thread_local! {
     static SIM: RefCell<Simulation> = RefCell::new(Simulation::new(0, 3000, 42));
@@ -41,15 +41,15 @@ pub extern "C" fn sim_spawn_cluster(
     radius: f32,
 ) {
     SIM.with(|cell| {
-        cell.borrow_mut().spawn_cluster(
-            f64::from(x),
-            f64::from(y),
-            f64::from(vx),
-            f64::from(vy),
+        cell.borrow_mut().spawn_cluster(ClusterSpawn {
+            x: f64::from(x),
+            y: f64::from(y),
+            vx: f64::from(vx),
+            vy: f64::from(vy),
             count,
-            f64::from(total_mass),
-            f64::from(radius),
-        );
+            total_mass: f64::from(total_mass),
+            radius: f64::from(radius),
+        });
     });
 }
 
@@ -250,11 +250,11 @@ mod tests {
         let mut sim = Simulation::new(0, 16, 1);
         sim.bodies.clear();
 
-        let mass = 100.0;
-        let half_sep = 40.0;
+        let mass = 100.0_f64;
+        let half_sep = 40.0_f64;
         let sep = 2.0 * half_sep;
-        let eps = 2.0;
-        let g = 1.0;
+        let eps = 2.0_f64;
+        let g = 1.0_f64;
         let r2 = sep * sep + eps * eps;
         let v_rel = sep * (g * (2.0 * mass) / (r2 * r2.sqrt())).sqrt();
         let v_orb = 0.5 * v_rel;
@@ -292,7 +292,15 @@ mod tests {
             for _ in 0..25 {
                 sim.step(0.06, 0.55, 6.0, 1.0);
             }
-            sim.spawn_cluster(50.0, -40.0, 1.2, -0.8, 64, 500.0, 45.0);
+            sim.spawn_cluster(ClusterSpawn {
+                x: 50.0,
+                y: -40.0,
+                vx: 1.2,
+                vy: -0.8,
+                count: 64,
+                total_mass: 500.0,
+                radius: 45.0,
+            });
             sim.spawn_smbh(-80.0, 90.0, -0.5, 0.4, 1500.0);
             sim.apply_pulse(0.0, 0.0, -4.0, 220.0);
             sim.apply_pulse(20.0, 20.0, 3.0, 180.0);

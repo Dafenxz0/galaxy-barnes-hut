@@ -5,6 +5,16 @@ use crate::quadtree::Quadtree;
 
 pub const PARTICLE_STRIDE: usize = 8;
 
+pub struct ClusterSpawn {
+    pub x: f64,
+    pub y: f64,
+    pub vx: f64,
+    pub vy: f64,
+    pub count: u32,
+    pub total_mass: f64,
+    pub radius: f64,
+}
+
 #[derive(Clone, Debug)]
 pub struct Body {
     pub x: f64,
@@ -107,22 +117,17 @@ impl Simulation {
         self.sync_particle_view();
     }
 
-    pub fn spawn_cluster(
-        &mut self,
-        x: f64,
-        y: f64,
-        vx: f64,
-        vy: f64,
-        count: u32,
-        total_mass: f64,
-        radius: f64,
-    ) {
-        if !x.is_finite() || !y.is_finite() || !vx.is_finite() || !vy.is_finite() {
+    pub fn spawn_cluster(&mut self, spec: ClusterSpawn) {
+        if !spec.x.is_finite()
+            || !spec.y.is_finite()
+            || !spec.vx.is_finite()
+            || !spec.vy.is_finite()
+        {
             return;
         }
-        let count = count.clamp(8, 2000) as usize;
-        let total_mass = total_mass.clamp(10.0, 20_000.0);
-        let radius = radius.clamp(15.0, 300.0);
+        let count = spec.count.clamp(8, 2000) as usize;
+        let total_mass = spec.total_mass.clamp(10.0, 20_000.0);
+        let radius = spec.radius.clamp(15.0, 300.0);
         let origin = (self.next_origin % 6) as f32;
         self.next_origin = self.next_origin.wrapping_add(1);
 
@@ -137,15 +142,19 @@ impl Simulation {
         append_galaxy(
             &mut self.bodies,
             &GalaxyParams {
-                cx: x,
-                cy: y,
-                vx,
-                vy,
+                cx: spec.x,
+                cy: spec.y,
+                vx: spec.vx,
+                vy: spec.vy,
                 smbh_mass,
                 star_count,
                 star_mass,
                 radius,
-                spin: if self.next_origin % 2 == 0 { 1.0 } else { -1.0 },
+                spin: if self.next_origin.is_multiple_of(2) {
+                    1.0
+                } else {
+                    -1.0
+                },
                 origin,
                 spiral_arms: true,
             },
