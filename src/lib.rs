@@ -234,7 +234,10 @@ mod tests {
         let (err_loose, evals_loose) = measure_rel_err(1.2, &mut stack);
 
         assert!(err_exact < 1e-12, "theta=0 must match direct N^2");
-        assert!(err_tight < 0.015, "theta=0.15 rel err too high: {err_tight}");
+        assert!(
+            err_tight < 0.015,
+            "theta=0.15 rel err too high: {err_tight}"
+        );
         assert!(err_tight < err_mid);
         assert!(err_mid < err_loose);
         assert!(evals_loose < evals_mid);
@@ -256,7 +259,8 @@ mod tests {
         let v_rel = sep * (g * (2.0 * mass) / (r2 * r2.sqrt())).sqrt();
         let v_orb = 0.5 * v_rel;
 
-        sim.bodies.push(make_body(-half_sep, 0.0, 0.0, -v_orb, mass));
+        sim.bodies
+            .push(make_body(-half_sep, 0.0, 0.0, -v_orb, mass));
         sim.bodies.push(make_body(half_sep, 0.0, 0.0, v_orb, mass));
         sim.refresh_tree_and_forces(0.5, eps, g);
         sim.sync_particle_view();

@@ -227,7 +227,8 @@ impl Simulation {
 
     pub fn sync_particle_view(&mut self) {
         self.particle_f32.clear();
-        self.particle_f32.reserve(self.bodies.len() * PARTICLE_STRIDE);
+        self.particle_f32
+            .reserve(self.bodies.len() * PARTICLE_STRIDE);
 
         let mut ke = 0.0;
         let mut px = 0.0;

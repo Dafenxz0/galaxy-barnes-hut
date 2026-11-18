@@ -141,8 +141,8 @@ impl Quadtree {
                 continue;
             }
 
-            let at_limit = self.nodes[curr].depth >= MAX_DEPTH
-                || self.nodes[curr].half_size <= MIN_HALF_SIZE;
+            let at_limit =
+                self.nodes[curr].depth >= MAX_DEPTH || self.nodes[curr].half_size <= MIN_HALF_SIZE;
             if at_limit {
                 let prev_first = self.nodes[curr].first_body;
                 self.next_body[body_idx] = prev_first;
@@ -298,12 +298,7 @@ fn quadrant(cx: f64, cy: f64, x: f64, y: f64) -> usize {
     (top << 1) | right
 }
 
-pub fn direct_force_for_body(
-    body_idx: usize,
-    bodies: &[Body],
-    eps_sq: f64,
-    g: f64,
-) -> (f64, f64) {
+pub fn direct_force_for_body(body_idx: usize, bodies: &[Body], eps_sq: f64, g: f64) -> (f64, f64) {
     let x = bodies[body_idx].x;
     let y = bodies[body_idx].y;
     let mut ax = 0.0;

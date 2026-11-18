@@ -12,7 +12,9 @@ pub struct Rng {
 impl Rng {
     pub fn new(seed: u32) -> Self {
         let s = u64::from(seed).wrapping_add(0x9E37_79B9_7F4A_7C15);
-        Self { state: if s == 0 { 1 } else { s } }
+        Self {
+            state: if s == 0 { 1 } else { s },
+        }
     }
 
     pub fn next_u64(&mut self) -> u64 {
@@ -115,7 +117,15 @@ pub fn append_galaxy(bodies: &mut Vec<Body>, params: &GalaxyParams, rng: &mut Rn
     }
 }
 
-pub fn append_smbh(bodies: &mut Vec<Body>, x: f64, y: f64, vx: f64, vy: f64, mass: f64, origin: f32) {
+pub fn append_smbh(
+    bodies: &mut Vec<Body>,
+    x: f64,
+    y: f64,
+    vx: f64,
+    vy: f64,
+    mass: f64,
+    origin: f32,
+) {
     bodies.push(Body {
         x,
         y,
