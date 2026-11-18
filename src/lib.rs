@@ -190,7 +190,9 @@ mod tests {
         assert!((root.com_x - expected_cx).abs() < 1e-12);
         assert!((root.com_y - expected_cy).abs() < 1e-12);
 
-        for box_chunk in tree.boxes_f32.chunks_exact(QUADTREE_BOX_STRIDE) {
+        let (chunks, remainder) = tree.boxes_f32.as_chunks::<QUADTREE_BOX_STRIDE>();
+        assert!(remainder.is_empty());
+        for box_chunk in chunks {
             let half_size = box_chunk[2];
             let depth = box_chunk[3];
             assert!(half_size > 0.0 && half_size.is_finite());
